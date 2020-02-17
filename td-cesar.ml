@@ -3,7 +3,7 @@ let iZ = int_of_char 'Z';;
 
 let createCesarCipher (offset: int) =
     let offsetCar (offset: int) (c: char) = (
-        let index = int_of_char c in print_int(index); print_newline();
+        let index = int_of_char c in
             match c with
                 | ' ' -> ' '
                 |_ when (index >= iA && index <= iZ) -> (
