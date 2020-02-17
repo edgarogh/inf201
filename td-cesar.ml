@@ -1,3 +1,6 @@
+let decode = "-d" = Array.get Sys.argv 1;;
+let offset = 3;;
+
 let iA = int_of_char 'A';;
 let iZ = int_of_char 'Z';;
 
@@ -16,7 +19,7 @@ let createCesarCipher (offset: int) =
 ;;
 
 
-let (codeCar, decodeCar) = createCesarCipher 3;;
+let (codeCar, decodeCar) = createCesarCipher offset;;
 
 assert ('D' = codeCar 'A');;
 assert (' ' = codeCar ' ');;
@@ -27,4 +30,8 @@ assert ('X' = decodeCar (codeCar 'X'));;
 let codeString = String.map codeCar;;
 let decodeString = String.map decodeCar;;
 
-print_string (codeString "HELLO");;
+let transform =
+    if decode then decodeString else codeString
+;;
+
+print_string (transform (read_line()));;
