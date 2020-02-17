@@ -23,3 +23,8 @@ assert (' ' = codeCar ' ');;
 assert ('C' = codeCar 'Z');;
 
 assert ('X' = decodeCar (codeCar 'X'));;
+
+let codeString = String.map codeCar;;
+let decodeString = String.map decodeCar;;
+
+print_string (codeString "HELLO");;
