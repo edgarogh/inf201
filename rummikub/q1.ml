@@ -43,7 +43,7 @@ let rec inclus (mens1: 'a multiensemble) (mens2: 'a multiensemble) : bool =
         | A((el, occurences), rest) -> (
             (occurences <= nbocc el mens2)
             &&
-            (inclus rest mens2)         
+            (inclus rest mens2)
         )
 ;;
 
@@ -56,11 +56,9 @@ let rec ajoute ((n_value, n_occ): 'a multielement) (mens: 'a multiensemble) : 'a
             | V -> V
             | A((value, occurences), rest) when (n_value = value) -> (
                 let mel_sum : 'a multielement = (value, occurences + n_occ) in
-                    if (snd mel_sum) < 0 then (* Peut se produire lors d'une suppression *)
-                        failwith "Un multiensemble contient un nombre négatif d'éléments"
-                    else if (snd mel_sum) = 0 then (* Si la somme vaut 0, neutralisation -> on enlève l'elm. *)
+                    if (snd mel_sum) <= 0 then (* Peut se produire lors d'une suppression *)
                         rest
-                    else 
+                    else
                         A(mel_sum, rest)
             )
             | A(mel, rest) -> A(mel, ajoute (n_value, n_occ) rest)
@@ -76,6 +74,7 @@ let supprime ((n_value, n_occ): 'a multielement) (mens: 'a multiensemble) : 'a m
 ;;
 
 assert (A(('a', 1), A(('b', 1), V)) = (supprime ('c', 1) cst_mens2));;
+assert (A(('a', 3), A(('c', 1), V)) = (supprime ('b', 4) cst_mens1));;
 
 let egaux (a: 'a multiensemble) (b: 'a multiensemble) : bool =
     (inclus a b) && (inclus b a) (* Double inclusion *)
@@ -136,10 +135,10 @@ let un_dans (mens: 'a multiensemble) : 'a =
 let ens = A(('a', 2), A(('b', 1), V));;
 
 (*
- Pour un nombre de "lancés" "remaining_rolls", retourne le nombre de fois que 
- chaque lettre 'a'/'b' est tombée. Il devrait statistiquement il y avoir deux 
- fois plus de 'a' que de 'b'. Comme ce test n'est pas déterministe du tout, 
- il revient à l'utilisateur de vérifier au jugé, d'après ce qui s'affiche dans 
+ Pour un nombre de "lancés" "remaining_rolls", retourne le nombre de fois que
+ chaque lettre 'a'/'b' est tombée. Il devrait statistiquement il y avoir deux
+ fois plus de 'a' que de 'b'. Comme ce test n'est pas déterministe du tout,
+ il revient à l'utilisateur de vérifier au jugé, d'après ce qui s'affiche dans
  la console, si la distribution semble conforme.
 *)
 let rec test_un_dans (remaining_rolls: int) : int * int =

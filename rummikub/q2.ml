@@ -72,9 +72,7 @@ let rec ajoute ((n_value, n_occ): 'a multielement) (mens: 'a multiensemble) : 'a
         | [] -> []
         | (value, occurences) :: rest when (n_value = value) -> (
                 let mel_sum : 'a multielement = (value, occurences + n_occ) in
-                if (snd mel_sum) < 0 then (* Peut se produire lors d'une suppression *)
-                    failwith "Un multiensemble contient un nombre négatif d'éléments"
-                else if (snd mel_sum) = 0 then (* Si la somme vaut 0, neutralisation -> on enlève l'elm. *)
+                if (snd mel_sum) <= 0 then (* Peut se produire lors d'une suppression *)
                     rest
                 else
                     mel_sum :: rest
@@ -94,6 +92,7 @@ let supprime ((n_value, n_occ): 'a multielement) (mens: 'a multiensemble) : 'a m
 ;;
 
 assert ([('a', 1); ('b', 1)] = (supprime ('c', 1) cst_mens2));;
+assert ([('a', 3); ('c', 1)] = (supprime ('b', 4) cst_mens1));;
 
 let egaux (a: 'a multiensemble) (b: 'a multiensemble) : bool =
     (inclus a b) && (inclus b a) (* Double inclusion *)
