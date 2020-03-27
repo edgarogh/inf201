@@ -4,7 +4,7 @@ type expression
     | Number of float
     | String of string
     | Array of expression list
-    | Object of (string * expression) list;;
+    | Object of (string * expression) list
 
 let json_number_of_number (n: float) : string =
     let s = string_of_float n in
@@ -13,11 +13,9 @@ let json_number_of_number (n: float) : string =
             (String.sub s 0 idx)
         else
             s
-;;
 
 let json_string_of_string (s: string) : string =
     "\"" ^ (String.escaped s) ^ "\""
-;;
 
 let rec string_of_expression (e: expression) : string =
     match e with
@@ -42,7 +40,6 @@ let rec string_of_expression (e: expression) : string =
                 ^
                 "}"
         )
-;;
 
 let () = print_string (string_of_expression (
     Object([
@@ -53,4 +50,4 @@ let () = print_string (string_of_expression (
             String("Banana");
         ]));
     ])
-));;
+))
