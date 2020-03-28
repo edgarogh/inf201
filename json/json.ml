@@ -4,7 +4,7 @@ type expression
     | Number of float
     | String of string
     | Array of expression list
-    | Object of (string * expression) list;;
+    | Object of (string * expression) list
 
 let json_number_of_number (n: float) : string =
     let s = string_of_float n in
@@ -13,11 +13,9 @@ let json_number_of_number (n: float) : string =
             (String.sub s 0 idx)
         else
             s
-;;
 
 let json_string_of_string (s: string) : string =
     "\"" ^ (String.escaped s) ^ "\""
-;;
 
 let rec string_of_expression (e: expression) : string =
     match e with
@@ -42,7 +40,6 @@ let rec string_of_expression (e: expression) : string =
                 ^
                 "}"
         )
-;;
 
 let () = print_string (string_of_expression (
     Object([
@@ -53,4 +50,41 @@ let () = print_string (string_of_expression (
             String("Banana");
         ]));
     ])
-));;
+))
+
+let () = print_newline ()
+
+let is_digit c = (c >= '0') && (c <= '9')
+
+let json_filter_string : Tokenizer.filter_delegate =
+    fun () ->
+    let escape = ref 1 in
+    let continue = function
+        | any when !escape > 0 -> escape := !escape - 1; true
+        | '"' -> false
+        | '\\' -> escape := 1; true
+        | any -> true
+    in
+    continue
+
+let json_filter_number : Tokenizer.filter_delegate =
+    fun () ->
+    let continue = function
+        | c when is_digit c -> true
+        | '.' -> true
+        | _ -> false
+    in
+    continue
+
+let json_token_filter = function
+    | ' ' | '\t' | '\n' | '\r' -> Tokenizer.Simple (true, false)
+    | '{' | '}' | '[' | ']' | ':' | ',' -> Tokenizer.Simple(true, true)
+    | '"' -> Tokenizer.Delegated (1, json_filter_string)
+    | c when is_digit c -> Tokenizer.Delegated (0, json_filter_number)
+    | _ -> Tokenizer.Simple (false, false)
+
+let test_string = "{\"prop1\": 123.45, \"prop 2\":\"hello \\\"world\\\"\"}"
+
+let tokens = Tokenizer.tokenize json_token_filter test_string
+
+let () = List.iter print_endline tokens
