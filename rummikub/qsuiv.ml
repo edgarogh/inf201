@@ -25,7 +25,7 @@ let cst_mens3 : char multiensemble = [cst_me6; cst_me7; cst_me8];;
 
 (*q4*)
 type valeur = int;;
-type couleur = Rouge | Bleu | Jaune | Noir;; 
+type couleur = Rouge | Bleu | Jaune | Noir;;
 type tuile = Joker | T of valeur * couleur;;
 
 (*q5*)
@@ -35,11 +35,11 @@ type pose = combinaison list;;
 
 (*q6*)
 type 'a multielement = 'a * int;;
-type 'a multiensemble = 'a multielement list;; 
+type 'a multiensemble = 'a multielement list;;
 type main = tuile multiensemble;;
 type pioche = main;;
 
-let cst_PIOCHE_INIT : pioche = 
+let cst_PIOCHE_INIT : pioche =
   [ (Joker, 2) ;
     T(1,Rouge), 2 ; T(2,Rouge), 2 ; T(3,Rouge), 2 ; T(4,Rouge), 2 ; T(5,Rouge), 2 ;
     T(6,Rouge), 2 ; T(7,Rouge), 2 ; T(8,Rouge), 2 ; T(9,Rouge), 2 ; T(10,Rouge), 2 ;
@@ -58,15 +58,15 @@ let cst_PIOCHE_INIT : pioche =
 (*q7*)
 let trouver_rouge (mens:tuile multiensemble)=
   List.filter
-    (fun (el,oc) -> 
+    (fun (el,oc) ->
        match el with
          | T(_,Rouge) -> true
          |_ -> false)
     mens
-;; 
+;;
 
 let trouver_jaune (mens:tuile multiensemble)=
-  List.filter (fun (el,oc) -> 
+  List.filter (fun (el,oc) ->
                 match el with
                   | T(_,Jaune) -> true
                   |_ -> false)
@@ -74,7 +74,7 @@ let trouver_jaune (mens:tuile multiensemble)=
 ;;
 
 let trouver_bleu (mens:tuile multiensemble)=
-  List.filter (fun (el,oc) -> 
+  List.filter (fun (el,oc) ->
                 match el with
                   | T(_,Bleu) -> true
                   |_ -> false)
@@ -82,7 +82,7 @@ let trouver_bleu (mens:tuile multiensemble)=
 ;;
 
 let trouver_noir (mens:tuile multiensemble)=
-  List.filter (fun (el,oc) -> 
+  List.filter (fun (el,oc) ->
                 match el with
                   | T(_,Noir) -> true
                   |_ -> false)
@@ -121,10 +121,10 @@ let rec tri_insertion = function
   |  tete::queue -> insere tete (tri_insertion queue)
 ;;
 
-assert (tri_insertion [T(1,Noir), 3; T(1,Noir), 2; T(1,Noir), 1] 
+assert (tri_insertion [T(1,Noir), 3; T(1,Noir), 2; T(1,Noir), 1]
         = [T(1,Noir), 1; T(1,Noir), 2; T(1,Noir), 3]);;
 
-let en_ordre (mens:tuile multiensemble)= 
+let en_ordre (mens:tuile multiensemble)=
   tri_insertion (trouver_rouge mens) @
   tri_insertion (trouver_jaune mens) @
   tri_insertion (trouver_bleu mens)  @
@@ -133,9 +133,9 @@ let en_ordre (mens:tuile multiensemble)=
 ;;
 
 assert (en_ordre
-          [T(2,Noir), 3; T(1,Noir), 2; T(2,Bleu), 1;T(1,Rouge), 2; 
-           T(2,Rouge), 1;  Joker, 2; T(2,Jaune), 1; T(1,Jaune), 2; 
-           T(1,Bleu), 2;] = 
+          [T(2,Noir), 3; T(1,Noir), 2; T(2,Bleu), 1;T(1,Rouge), 2;
+           T(2,Rouge), 1;  Joker, 2; T(2,Jaune), 1; T(1,Jaune), 2;
+           T(1,Bleu), 2;] =
         [(T (1, Rouge), 2); (T (2, Rouge), 1);(T (1, Jaune), 2); (T (2, Jaune), 1);
          (T (1, Bleu), 2); (T (2, Bleu), 1); (T (1, Noir), 2); (T (2, Noir), 3);(Joker, 2)]);;
 
@@ -180,15 +180,15 @@ let un_dans_mel (mens: 'a multiensemble) : 'a multielement =
 ;;
 
 
-let rec extraire (n:int)(pioche:'a multiensemble):('a multiensemble*'a multiensemble)= 
+let rec extraire (n:int)(pioche:'a multiensemble):('a multiensemble*'a multiensemble)=
   match n with
     | 1 -> let aleatoire:'a multielement = un_dans_mel pioche in
         let mens:'a multiensemble = [aleatoire] in
           (mens,pioche)
-    | _ -> 
-        let (main_n,pioche_n) = extraire (n-1) pioche in 
+    | _ ->
+        let (main_n,pioche_n) = extraire (n-1) pioche in
         let aleatoire = un_dans_mel pioche in
-        let main = en_ordre(aleatoire::main_n)in 
+        let main = en_ordre(aleatoire::main_n)in
           (main,pioche)
 ;;
 
@@ -275,15 +275,15 @@ let est_suite (c:combinaison) =
     match c with
       | [] -> occ>=3
       | Joker :: rest -> aux ((valeur+1),couleur) (occ+1) rest
-      | T(valeur_n, couleur_n)::rest -> 
+      | T(valeur_n, couleur_n)::rest ->
           if valeur_n = valeur +1 && couleur = couleur_n then aux (valeur_n, couleur_n) (occ+1) rest
-          else false 
-  in 
+          else false
+  in
     match c with
       | [] -> true
       | [Joker]|[Joker;Joker]-> false
       | Joker::T(valeur,couleur)::rest -> aux (valeur, couleur) 2 rest
-      | Joker::Joker::T(valeur, couleur)::rest -> aux (valeur, couleur) 3 rest 
+      | Joker::Joker::T(valeur, couleur)::rest -> aux (valeur, couleur) 3 rest
       | T(valeur, couleur)::rest -> aux (valeur, couleur) 1 rest
       | _ -> false
 ;;
@@ -293,7 +293,7 @@ assert (est_suite [T(1,Rouge);T(2,Rouge);T(3,Rouge);T(4,Rouge);T(5,Rouge)]);;
 assert_not (est_suite [T(1,Rouge);T(2,Rouge);T(3,Rouge);T(4,Rouge);T(4,Rouge)]);;
 assert (est_suite [Joker;T(2,Rouge);T(3,Rouge);T(4,Rouge);T(5,Rouge)]);;
 
-let rec appartient_combi x c = 
+let rec appartient_combi x c =
   match c with
     |[]-> false
     |debut::fin -> x=debut || (appartient_combi x fin)
@@ -304,11 +304,11 @@ let est_groupe (c:combinaison) =
     match c with
       | [] -> occ = 3 || occ = 4
       | Joker::rest -> aux (occ+1) valeur couleur_l rest
-      | T(valeur_n, couleur_n)::rest -> 
-          if (not(appartient_combi couleur_n couleur_l) && valeur = valeur_n) 
+      | T(valeur_n, couleur_n)::rest ->
+          if (not(appartient_combi couleur_n couleur_l) && valeur = valeur_n)
           then aux (occ+1) valeur (couleur_n::couleur_l) rest
           else false
-  in 
+  in
     match c with
       | [] -> true
       | [Joker]|[Joker;Joker]-> false
@@ -339,3 +339,61 @@ let rec combinaisons_valides (cl:combinaison list) =
 assert (combinaisons_valides
           [[T(1,Rouge);T(2,Rouge);T(3,Rouge);T(4,Rouge);T(5,Rouge)];[T(12,Rouge);T(12,Jaune);T(12,Bleu)]]);;
 
+
+
+(* Edgar *)
+(**
+    FONCTION AUXILIAURE
+    TODO
+    Renvoie la première valeur d'une suite, en tenant compte de l'éventualité
+    qu'il s'agisse d'un Joker
+*)
+let debut_suite : combinaison -> int = function
+    | T (valeur, _) :: _ -> valeur
+    | Joker :: T (valeur, _) :: _ -> valeur - 1
+    | Joker :: Joker :: T (valeur, _) :: _ -> valeur - 2
+    | _ -> failwith "Trop de Jokers en jeu ou combinaison invalide"
+;;
+
+assert (10 = debut_suite [T (10, Rouge)]);;
+assert (10 = debut_suite [Joker; Joker; T (12, Rouge)]);;
+
+(**
+    FONCTION AUXILIAIRE
+    TODO
+    Somme des entiers consécutifs de m à n
+*)
+let somme_m_a_n m n = (n - m + 1) * (m + n) / 2;;
+
+assert (5050 = somme_m_a_n 1 100);;
+assert (21 = somme_m_a_n 10 11);;
+
+let points_suite (c: combinaison) : int =
+    let debut_suite = debut_suite c in
+    let longueur_suite = List.length c in
+    somme_m_a_n debut_suite (debut_suite + longueur_suite - 1)
+;;
+
+assert (6 = points_suite [T (1, Jaune); Joker; T (3, Jaune)]);;
+assert (14 = points_suite [Joker; Joker; T (4, Jaune); T (5, Jaune)]);;
+
+let points_groupe (c: combinaison) : int =
+    let c_sans_joker = List.filter (function
+        | Joker -> false
+        | T (_, _) -> true
+    ) c in
+    match c_sans_joker with
+    | T (valeur, _) :: _ -> valeur * (List.length c)
+    | _ -> failwith "Une combinaison ne peut pas contenir que des Jokers"
+;;
+
+assert (3 = points_groupe [Joker; T (1, Jaune); Joker]);;
+
+let points_pose (pose: pose) : int =
+    let points (c: combinaison) =
+        if est_suite c
+        then points_suite c
+        else points_groupe c
+    in
+    List.fold_left (+) 0 (List.map points pose)
+;;
