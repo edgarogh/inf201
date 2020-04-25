@@ -22,160 +22,6 @@ let cst_mens1 : char multiensemble = [cst_me1; cst_me2; cst_me3];;
 let cst_mens2 : char multiensemble = [cst_me4; cst_me5; cst_me3];;
 let cst_mens3 : char multiensemble = [cst_me6; cst_me7; cst_me8];;
 
-let rec cardinal (mens: 'a multiensemble) : int =
-  match mens with
-    | [] -> 0
-    | (_, occurences) :: rest -> occurences + cardinal rest
-;;
-
-(*Tests*)
-assert (0 = cardinal []);;
-assert (3 = cardinal cst_mens2);;
-assert (6 = cardinal cst_mens1);;
-
-let rec nbocc (which: 'a) (mens: 'a multiensemble) : int =
-  match mens with
-    | [] -> 0
-    | (el, occurences) :: rest -> (
-        if el = which then occurences else nbocc which rest
-      )
-;;
-
-(*Tests*)
-assert (3 = nbocc 'a' cst_mens1);;
-assert (1 = nbocc 'c' cst_mens1);;
-
-let rec appartient (which: 'a) (mens: 'a multiensemble) : bool =
-  (nbocc which mens) > 0
-;;
-
-(*Tests*)
-assert (appartient 'b' cst_mens1);;
-assert_not (appartient 'd' cst_mens1);;
-
-let rec inclus (mens1: 'a multiensemble) (mens2: 'a multiensemble) : bool =
-  match mens1 with
-    | [] -> true (* L'ensemble vide est dans tous les ensembles *)
-    | (el, occurences) :: rest -> (
-        (occurences <= nbocc el mens2)
-        &&
-        (inclus rest mens2)
-      )
-;;
-
-(*Tests*)
-assert (inclus cst_mens2 cst_mens1);;
-assert_not (inclus cst_mens1 cst_mens2);;
-
-let rec ajoute ((n_value, n_occ): 'a multielement) (mens: 'a multiensemble) : 'a multiensemble =
-  if appartient n_value mens then (* Element présent, on mappe en modifiant l'élément *)
-    match mens with
-      | [] -> []
-      | (value, occurences) :: rest when (n_value = value) -> (
-          let mel_sum : 'a multielement = (value, occurences + n_occ) in
-            if (snd mel_sum) <= 0 then (* Peut se produire lors d'une suppression *)
-              rest
-            else
-              mel_sum :: rest
-        )
-      | mel :: rest -> let a = ajoute (n_value, n_occ) rest in
-            mel :: a
-  else (* Elément pas présent, on le rajoute au début tel quel *)
-    (n_value, n_occ) :: mens
-;;
-
-
-assert (cst_mens1 = (ajoute ('a', 2) (ajoute ('b', 1) cst_mens2)));;
-assert ([('a', 1); ('b', 1)] = (ajoute ('c', -1) cst_mens2));;
-
-let supprime ((n_value, n_occ): 'a multielement) (mens: 'a multiensemble) : 'a multiensemble =
-  ajoute (n_value, -n_occ) mens
-;;
-
-assert ([('a', 1); ('b', 1)] = (supprime ('c', 1) cst_mens2));;
-assert ([('a', 3); ('c', 1)] = (supprime ('b', 4) cst_mens1));;
-
-let egaux (a: 'a multiensemble) (b: 'a multiensemble) : bool =
-  (inclus a b) && (inclus b a) (* Double inclusion *)
-;;
-
-assert (egaux cst_mens1 cst_mens1);;
-assert_not (egaux cst_mens1 cst_mens3);;
-assert_not (egaux cst_mens1 cst_mens2);;
-
-let rec intersection (a: 'a multiensemble) (b: 'a multiensemble) : 'a multiensemble =
-  match a with
-    | [] -> []
-    | (value, occurences) :: rest -> (
-        let in_common_count = (min occurences (nbocc value b)) in
-          if in_common_count = 0 then
-            intersection rest b
-          else
-            (value, in_common_count) :: (intersection rest b)
-      )
-;;
-
-assert (cst_mens2 = intersection cst_mens1 cst_mens2);;
-assert ([('a', 3)] = intersection cst_mens1 ([('a', 4)]));;
-
-let rec difference (a: 'a multiensemble) (b: 'a multiensemble) : 'a multiensemble =
-  match b with
-    | [] -> a (* A - Ø = A *)
-    | mel :: rest -> (difference (supprime mel a) rest)
-;;
-
-assert (([('a', 2); ('b', 1)]) = difference cst_mens1 cst_mens2);;
-
-let rec ieme (n: int) (mens: 'a multiensemble) : 'a multielement =
-  if n < 0 then
-    failwith "n < 0"
-  else
-    match mens with
-      | [] -> failwith "n >= cardinal mens"
-      | (value, occurences) :: rest -> (
-          if n < occurences then
-            (value, 1)
-          else
-            ieme (n - occurences) rest
-        )
-;;
-
-assert (('a', 1) = ieme 1 cst_mens1);;
-assert (('b', 1) = ieme 4 cst_mens1);;
-assert (('c', 1) = ieme 5 cst_mens1);;
-
-let un_dans (mens: 'a multiensemble) : 'a multielement =
-  let length = cardinal mens in
-    ieme (Random.int length) mens
-;;
-
-(* Suite de test manuelle pour "un_dans" *)
-
-let ens = [ ('a', 2); ('b', 1)];;
-
-(*
-Pour un nombre de "lancés" "remaining_rolls", retourne le nombre de fois que
-chaque lettre 'a'/'b' est tombée. Il devrait statistiquement il y avoir deux
-fois plus de 'a' que de 'b'. Comme ce test n'est pas déterministe du tout,
-il revient à l'utilisateur de vérifier au jugé, d'après ce qui s'affiche dans
-la console, si la distribution semble conforme.
-*)
-(*let rec test_un_dans (remaining_rolls: int) : int * int =
-  if remaining_rolls = 0 then (0, 0)
-  else
-  let roll = un_dans ens (* "choix" actuel pour cette itération *)
-  and (a, b) = test_un_dans (remaining_rolls - 1) (* Données des itérations suivantes *)
-  in
-  if roll = 'a'
-  then (a + 1, b)
-  else (a, b + 1)
-  ;;
-
-  let (a, b) = (test_un_dans 10000) in (
-  print_string "a/b (doit être proche de 2): ";
-  print_float ((float_of_int a) /. (float_of_int b));
-  print_newline ();
-  );;*)
 
 (*q4*)
 type valeur = int;;
@@ -275,7 +121,8 @@ let rec tri_insertion = function
   |  tete::queue -> insere tete (tri_insertion queue)
 ;;
 
-assert (tri_insertion [T(1,Noir), 3; T(1,Noir), 2; T(1,Noir), 1] = [T(1,Noir), 1; T(1,Noir), 2; T(1,Noir), 3]);;
+assert (tri_insertion [T(1,Noir), 3; T(1,Noir), 2; T(1,Noir), 1] 
+        = [T(1,Noir), 1; T(1,Noir), 2; T(1,Noir), 3]);;
 
 let en_ordre (mens:tuile multiensemble)= 
   tri_insertion (trouver_rouge mens) @
@@ -289,25 +136,58 @@ assert (en_ordre
           [T(2,Noir), 3; T(1,Noir), 2; T(2,Bleu), 1;T(1,Rouge), 2; 
            T(2,Rouge), 1;  Joker, 2; T(2,Jaune), 1; T(1,Jaune), 2; 
            T(1,Bleu), 2;] = 
-        [(T (1, Rouge), 2); (T (2, Rouge), 1);
-         (T (1, Jaune), 2); (T (2, Jaune), 1);
-         (T (1, Bleu), 2); (T (2, Bleu), 1); 
-         (T (1, Noir), 2); (T (2, Noir), 3);
-         (Joker, 2)]);;
+        [(T (1, Rouge), 2); (T (2, Rouge), 1);(T (1, Jaune), 2); (T (2, Jaune), 1);
+         (T (1, Bleu), 2); (T (2, Bleu), 1); (T (1, Noir), 2); (T (2, Noir), 3);(Joker, 2)]);;
 
 type joueur = J1 | J2;;
 type statut = joueur * bool * main;;
 type etat = (statut * statut) * table * pioche * joueur;;
-(*definir cst etat*)
+
 (*q8*)
+(*fonctions intermédiaires*)
+let rec cardinal (mens: 'a multiensemble) : int =
+  match mens with
+    | [] -> 0
+    | (_, occurences) :: rest -> occurences + cardinal rest
+;;
+
+(*Tests*)
+assert (0 = cardinal []);;
+assert (3 = cardinal cst_mens2);;
+assert (6 = cardinal cst_mens1);;
+
+let rec ieme_mel (n: int) (mens: 'a multiensemble) : 'a multielement =
+  if n < 0 then
+    failwith "n < 0"
+  else
+    match mens with
+      | [] -> failwith "n >= cardinal mens"
+      | (value, occurences) :: rest -> (
+          if n < occurences then
+            (value, 1)
+          else
+            ieme_mel (n - occurences) rest)
+;;
+
+(*Tests*)
+assert (('a', 1) = ieme_mel 1 cst_mens1);;
+assert (('b', 1) = ieme_mel 4 cst_mens1);;
+assert (('c', 1) = ieme_mel 5 cst_mens1);;
+
+let un_dans_mel (mens: 'a multiensemble) : 'a multielement =
+  let length = cardinal mens in
+    ieme_mel (Random.int length) mens
+;;
+
+
 let rec extraire (n:int)(pioche:'a multiensemble):('a multiensemble*'a multiensemble)= 
   match n with
-    | 1 -> let aleatoire:'a multielement = un_dans pioche in
+    | 1 -> let aleatoire:'a multielement = un_dans_mel pioche in
         let mens:'a multiensemble = [aleatoire] in
           (mens,pioche)
     | _ -> 
         let (main_n,pioche_n) = extraire (n-1) pioche in 
-        let aleatoire = un_dans pioche in
+        let aleatoire = un_dans_mel pioche in
         let main = en_ordre(aleatoire::main_n)in 
           (main,pioche)
 ;;
@@ -331,6 +211,12 @@ let init_partie ():etat =
 ;;
 
 (*q9*)
+(*constante de test*)
+let statut_1:statut = (J1,false,[(T (2, Rouge), 1);(T (1, Jaune), 2); (T (2, Jaune), 1)]);;
+let statut_2:statut = (J2,false,[(T (2, Bleu), 1);(T (1, Bleu), 2); (T (2, Bleu), 1)]) ;;
+let table : table = [[T(1,Rouge);T(2,Rouge);T(3,Rouge)];[T(4,Rouge);T(5,Rouge)]];;
+let pioche : pioche = [(Joker, 1)];;
+let cst_etat:etat = ((statut_1,statut_2), table, pioche, J1);;
 
 let joueur_courant (etat:etat):joueur =
   match etat with
@@ -338,38 +224,52 @@ let joueur_courant (etat:etat):joueur =
     |(_,_,_, J2) -> J2
 ;;
 
+(*Tests*)
+assert (joueur_courant cst_etat = J1);;
+
 let joueur_suivant (etat:etat):joueur =
   match etat with
     |(_,_,_, J1) -> J2
     |(_,_,_, J2) -> J1
 ;;
+(*Tests*)
+assert (joueur_suivant cst_etat = J2);;
 
 let la_table (etat:etat):table =
   let (statut, table, pioche, joueur) = etat in
     table
 ;;
+(*Tests*)
+assert (la_table cst_etat = table);;
 
 let la_pioche (etat:etat):pioche =
   let (statut, table, pioche, joueur) = etat in
     pioche
 ;;
+(*Tests*)
+assert (la_pioche cst_etat = pioche);;
 
-let statut (etat:etat) (joueur:joueur):statut =
-  let (statut, table, pioche, joueur) = etat in
-  let ((joueur1, condition1, main1),(joueur2, condition2, main2)) = statut in
-    if joueur = joueur2 then (joueur2, condition2, main2) 
-    else (joueur1, condition1, main1)
+let statut (etat: etat) (joueur: joueur) : statut =
+  let (statuts, _, _, _) = etat in
+  let (statut1, statut2) = statuts in
+    if joueur = J1 then statut1 else statut2
 ;;
 
+(*Tests*)
+assert (statut cst_etat J1 = statut_1) ;;
+assert (statut cst_etat J2 = statut_2) ;;
+
 let la_main (etat:etat) (joueur:joueur):main =
-  let (statut, table, pioche, joueur) = etat in
+  let (statut, _, _ , _) = etat in
   let ((joueur1, condition1, main1),(joueur2, condition2, main2)) = statut in
     if joueur = joueur2 then main2
     else main1
 ;;
+(*Tests*)
+assert (la_main cst_etat J1 = [(T (2, Rouge), 1);(T (1, Jaune), 2); (T (2, Jaune), 1)]);;
+assert (la_main cst_etat J2 = [(T (2, Bleu), 1);(T (1, Bleu), 2); (T (2, Bleu), 1)]);;
 
 (*q10*)
-
 let est_suite (c:combinaison) =
   let rec aux ((valeur:int),(couleur:couleur))(occ:int)(c:combinaison):bool =
     match c with
@@ -388,6 +288,7 @@ let est_suite (c:combinaison) =
       | _ -> false
 ;;
 
+(*Tests*)
 assert (est_suite [T(1,Rouge);T(2,Rouge);T(3,Rouge);T(4,Rouge);T(5,Rouge)]);;
 assert_not (est_suite [T(1,Rouge);T(2,Rouge);T(3,Rouge);T(4,Rouge);T(4,Rouge)]);;
 assert (est_suite [Joker;T(2,Rouge);T(3,Rouge);T(4,Rouge);T(5,Rouge)]);;
@@ -417,6 +318,7 @@ let est_groupe (c:combinaison) =
       | _ -> false
 ;;
 
+(*Tests*)
 assert (est_groupe [T(12,Rouge);T(12,Jaune);T(12,Bleu)]);;
 assert_not (est_groupe [T(1,Rouge);T(2,Rouge);T(3,Rouge);T(4,Rouge);T(4,Rouge)]);;
 assert (est_groupe [T(12,Rouge);T(12,Jaune);T(12,Bleu);Joker]);;
@@ -424,10 +326,16 @@ assert (est_groupe [T(12,Rouge);T(12,Jaune);T(12,Bleu);Joker]);;
 let combinaison_valide (c:combinaison) =
   est_groupe c || est_suite c
 ;;
+(*Tests*)
+assert (combinaison_valide [T(12,Rouge);T(12,Jaune);T(12,Bleu)]);;
+assert (combinaison_valide [T(1,Rouge);T(2,Rouge);T(3,Rouge);T(4,Rouge);T(5,Rouge)]);;
 
 let rec combinaisons_valides (cl:combinaison list) =
   match cl with
     | [] -> true
     | c::rest -> combinaison_valide c && combinaisons_valides rest
 ;;
+(*Tests*)
+assert (combinaisons_valides
+          [[T(1,Rouge);T(2,Rouge);T(3,Rouge);T(4,Rouge);T(5,Rouge)];[T(12,Rouge);T(12,Jaune);T(12,Bleu)]]);;
 
