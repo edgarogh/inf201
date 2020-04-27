@@ -71,10 +71,11 @@ let appartient (which: 'a) (mens: 'a multiensemble) : bool =
 assert (appartient 'b' cst_mens1);;
 assert_not (appartient 'd' cst_mens1);;
 
-let inclus (mens1: 'a multiensemble) : 'a multiensemble -> bool =
+let inclus (mens1: 'a multiensemble) (mens2: 'a multiensemble) : bool =
+	List.length mens2 > 0 &&
     List.for_all (fun (n_value, n_occ) ->
         nbocc n_value mens1 <= n_occ
-    )
+    ) mens2
 ;;
 
 (*Tests*)
