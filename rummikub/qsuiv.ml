@@ -72,13 +72,17 @@ assert (appartient 'b' cst_mens1);;
 assert_not (appartient 'd' cst_mens1);;
 
 let inclus (mens1: 'a multiensemble) (mens2: 'a multiensemble) : bool =
-	List.length mens2 > 0 &&
+    if mens2 = [] then
+        mens1 = []
+    else
     List.for_all (fun (n_value, n_occ) ->
         nbocc n_value mens1 <= n_occ
     ) mens2
 ;;
 
 (*Tests*)
+assert_not (inclus cst_mens1 []);;
+assert (inclus [] []);;
 assert (inclus cst_mens2 cst_mens1);;
 assert_not (inclus cst_mens1 cst_mens2);;
 
