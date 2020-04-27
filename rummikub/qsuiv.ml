@@ -149,8 +149,6 @@ type table = combinaison list;;
 type pose = combinaison list;;
 
 (*q6*)
-type 'a multielement = 'a * int;;
-type 'a multiensemble = 'a multielement list;;
 type main = tuile multiensemble;;
 type pioche = main;;
 
