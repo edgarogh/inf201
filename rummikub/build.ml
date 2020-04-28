@@ -10,11 +10,11 @@
 type task_type = B | S
 
 (* Raccourci vers `ocamlc` *)
-let c file = "ocamlc " ^ file ^ ".ml"
+let c file = "ocamlc -c " ^ file ^ ".ml"
 
 let tasks = [
     B, c "multiensemble";
-    S, "ocaml main.ml";
+    S, "ocaml multiensemble.cmo main.ml";
 ]
 
 (* Exécuteur de tâches *)

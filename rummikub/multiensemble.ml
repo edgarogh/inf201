@@ -113,6 +113,14 @@ assert ([('a', 3); ('c', 1)] = (supprime ('b', 4) cst_mens1));;
 
 ignore (nettoyer [(1, 0)]);;
 
+let egaux (a: 'a multiensemble) (b: 'a multiensemble) : bool =
+    (inclus a b) && (inclus b a) (* Double inclusion *)
+;;
+
+assert (egaux cst_mens1 cst_mens1);;
+assert_not (egaux cst_mens1 cst_mens3);;
+assert_not (egaux cst_mens1 cst_mens2);;
+
 let intersection (a: 'a multiensemble) (b: 'a multiensemble) : 'a multiensemble =
     nettoyer @@
     List.map (fun (el, a_occ) -> (
@@ -130,3 +138,54 @@ let difference (a: 'a multiensemble) (b: 'a multiensemble) : 'a multiensemble =
 ;;
 
 assert (([('a', 2); ('b', 1)]) = difference cst_mens1 cst_mens2);;
+
+let rec ieme (n: int) (mens: 'a multiensemble) : 'a =
+    if n < 0 then
+        failwith "n < 0"
+    else
+        match mens with
+        | [] -> failwith "n >= cardinal mens"
+        | (value, occurences) :: rest -> (
+                if n < occurences then
+                    value
+                else
+                    ieme (n - occurences) rest
+            )
+;;
+
+assert ('a' = ieme 1 cst_mens1);;
+assert ('b' = ieme 4 cst_mens1);;
+assert ('c' = ieme 5 cst_mens1);;
+
+let un_dans (mens: 'a multiensemble) : 'a =
+    let length = cardinal mens in
+    ieme (Random.int length) mens
+;;
+
+(* Suite de test manuelle pour "un_dans" *)
+
+let ens = [('a', 2); ('b', 1)];;
+
+(*
+  Pour un nombre de "lancés" "remaining_rolls", retourne le nombre de fois que
+  chaque lettre 'a'/'b' est tombée. Il devrait statistiquement il y avoir deux
+  fois plus de 'a' que de 'b'. Comme ce test n'est pas déterministe du tout,
+  il revient à l'utilisateur de vérifier au jugé, d'après ce qui s'affiche dans
+  la console, si la distribution semble conforme.
+*)
+let rec test_un_dans (remaining_rolls: int) : int * int =
+    if remaining_rolls = 0 then (0, 0)
+    else
+        let roll = un_dans ens (* "choix" actuel pour cette itération *)
+        and (a, b) = test_un_dans (remaining_rolls - 1) (* Données des itérations suivantes *)
+        in
+        if roll = 'a'
+        then (a + 1, b)
+        else (a, b + 1)
+;;
+
+let (a, b) = (test_un_dans 10000) in (
+    print_string "a/b (doit être proche de 2): ";
+    print_float ((float_of_int a) /. (float_of_int b));
+    print_newline ();
+);;
