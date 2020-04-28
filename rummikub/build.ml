@@ -14,7 +14,8 @@ let c file = "ocamlc -c " ^ file ^ ".ml"
 
 let tasks = [
     B, c "multiensemble";
-    S, "ocaml multiensemble.cmo main.ml";
+    B, c "tuiles";
+    S, "ocaml multiensemble.cmo tuiles.cmo main.ml";
 ]
 
 (* Exécuteur de tâches *)
