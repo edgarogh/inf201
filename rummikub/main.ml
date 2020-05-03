@@ -200,3 +200,66 @@ let points_pose (pose: pose) : int =
     in
     List.fold_left (+) 0 (List.map points pose)
 ;;
+
+
+let rec insere_tuile (tuile:tuile) (c:combinaison):combinaison =
+    match tuile with
+    | T (n, cons) -> (
+        match c with
+            | [] -> T (n, cons) :: []
+            | Joker :: queue -> Joker :: insere_tuile tuile queue
+            | T(n_c, cons_c) :: queue ->
+                if n < n_c then T (n, cons)::c
+                else T (n_c, cons_c) :: insere_tuile tuile queue
+        )
+    | Joker -> (
+        match c with
+            | [] -> Joker :: []
+            | Joker :: queue -> Joker :: insere_tuile tuile queue
+            | T(n_c, cons_c) :: queue -> T(n_c, cons_c) :: insere_tuile tuile queue
+        )
+;;
+
+let rec tri_insertion_tuile = function
+    | [] -> []
+    | tete :: queue -> insere_tuile tete (tri_insertion_tuile queue)
+;;
+
+assert (tri_insertion_tuile [T (2, Noir); Joker; T (1, Noir)]= [T (1, Noir); Joker; T (2, Noir)]);;
+
+let rec remplacer (r:combinaison)(c:combinaison)(table:table):table =
+    match table with
+    | [] -> []
+    | (x:combinaison)::rest -> if x = c then r::rest else x::(remplacer r c rest)
+;;
+
+(*Tests*)
+let c_1:combinaison = [T(1,Rouge);T(2,Rouge);T(3,Rouge);T(4,Rouge);T(5,Rouge)];;
+let c_1bis:combinaison = [T(1,Rouge);T(2,Rouge);T(3,Rouge);T(4,Rouge);T(5,Rouge);T(6,Rouge)];;
+let c_2:combinaison = [T (2, Noir); Joker; T (1, Noir)];;
+let c_3:combinaison = [T (2, Bleu); Joker; T (1, Jaune)];;
+
+assert ((remplacer c_1bis c_1 [c_1;c_2]) = [c_1bis;c_2]);;
+
+let rec ajouter_tuile (table:table)(tuile:tuile):table=
+    let rec ajouter_tuile_aux (c:combinaison)(tuile:tuile):combinaison=
+        let (combi:combinaison) = tri_insertion_tuile([tuile]@c) in
+            if (est_suite combi = true)||(est_suite combi = true) then combi
+            else c
+    in
+    match table with
+        | [] -> []
+        | x::rest -> if (ajouter_tuile_aux x tuile = x) 
+                    then ajouter_tuile rest tuile
+                    else let new_c: combinaison = (ajouter_tuile_aux x tuile) in
+                         (remplacer new_c x table)
+;;
+
+(*Tests*)
+let test_table:table = [c_1;c_2;c_3];;
+let result_table: table = [c_1bis;c_2;c_3];;
+let test_tuile:tuile = T(6,Rouge);;
+assert ((ajouter_tuile test_table test_tuile) = result_table);;
+
+
+
