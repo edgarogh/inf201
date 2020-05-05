@@ -200,3 +200,63 @@ let points_pose (pose: pose) : int =
     in
     List.fold_left (+) 0 (List.map points pose)
 ;;
+
+(**
+    FONCTION AUXILIAIRE
+    TODO
+    Explicite
+*)
+let multiensemble_of_list list =
+    List.fold_left (fun acc -> fun el -> ajoute (el, 1) acc) [] list
+;;
+
+assert (egaux [('a', 2); ('b', 1)] (multiensemble_of_list ['a'; 'a'; 'b']));;
+
+(* 8 *)
+let tableVmens (table: table) : tuile multiensemble =
+    let applati = List.flatten table in
+    multiensemble_of_list applati
+;;
+
+assert (egaux [(Joker, 2); (T (1, Rouge), 1)] (tableVmens [[Joker; T (1, Rouge)]; [Joker]]));;
+
+let premier_coup_ok (main: main) (pose: pose) (main_apres: main) =
+    (
+        (* Valeur totale des combinaisons >= 30 *)
+        (points_pose pose) >= 30
+    )
+    &&
+    (
+        (* Transition cohérente *)
+	    let pose = tableVmens pose in (* Conversion en mens *)
+        egaux main_apres (difference main pose)
+    )
+;;
+
+(* pose invalide, transition valide *)
+assert_not (premier_coup_ok [] [] []);;
+(* pose valide, transition invalide *)
+assert_not (premier_coup_ok [(T (10, Jaune), 1)] [[T (10, Rouge); T (10, Rouge); T (10, Rouge)]] []);;
+(* pose valide, transition valide *)
+assert (premier_coup_ok [(T (10, Rouge), 3)] [[T (10, Rouge); T (10, Rouge); T (10, Rouge)]] []);;
+
+let coup_ok (table0: table) (main0: main) (table1: table) (main1: main) =
+    (
+        (* Pose de cartes *)
+        cardinal main0 > cardinal main1
+    )
+    &&
+    (
+        (* Transition cohérente *)
+        let global0 = somme (tableVmens table0) main0 in
+        let global1 = somme (tableVmens table1) main1 in
+	    egaux global0 global1
+    )
+    &&
+    (
+        (* Table valide *)
+        List.for_all combinaison_valide table1
+    )
+;;
+
+(* TODO assertions *)

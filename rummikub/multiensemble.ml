@@ -132,6 +132,14 @@ let intersection (a: 'a multiensemble) (b: 'a multiensemble) : 'a multiensemble 
 assert (cst_mens2 = intersection cst_mens1 cst_mens2);;
 assert ([('a', 3)] = intersection cst_mens1 [('a', 4)]);;
 
+let somme (a: 'a multiensemble) (b: 'a multiensemble) : 'a multiensemble =
+    let ajoute a b = ajoute b a in (* Inversion des paramètres *)
+    List.fold_left ajoute a b
+;;
+
+assert (cst_mens1 = somme cst_mens1 []);;
+assert (egaux [('a', 4); ('b', 3); ('c', 2)] (somme cst_mens1 cst_mens2));;
+
 let difference (a: 'a multiensemble) (b: 'a multiensemble) : 'a multiensemble =
     let supprime a b = supprime b a in (* Inversion des paramètres *)
     List.fold_left supprime a b
