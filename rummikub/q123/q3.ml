@@ -1,5 +1,6 @@
 (* Specification: assertion inverse *)
 let assert_not cond = assert (not cond);;
+
 (* Specification: composition (existe déjà par défaut techniquement) *)
 let (@@) f x = f x;;
 

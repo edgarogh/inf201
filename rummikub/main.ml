@@ -1,6 +1,7 @@
 open Multiensemble
 open Tuiles
 
+(*Types*)
 type joueur = J1 | J2;;
 type statut = joueur * bool * main;;
 type etat = (statut * statut) * table * pioche * joueur;;
@@ -75,14 +76,18 @@ assert (la_main cst_etat J2 = [(T (2, Bleu), 1);(T (1, Bleu), 2); (T (2, Bleu), 
 (*q10*)
 let est_suite (c: combinaison) =
     let rec aux ((valeur:int), (couleur: couleur)) (occ: int) (c: combinaison) : bool =
+    (*Fonction auxiliaire qui prend la tuile précédente et la suite de la combinaison*)
         match c with
-        | [] -> occ >= 3
-        | Joker :: rest -> aux ((valeur+1), couleur) (occ+1) rest
+        | [] -> occ >= 3 (* Condition : Plus de 3 tuiles *)
+        | Joker :: rest -> aux ((valeur+1), couleur) (occ+1) rest (*Le Joker est valide de toute manière *)
         | T (valeur_n, couleur_n)::rest ->
+            (*Conditions : les tuiles doivent se suivre et être de la même couleur*)
             if valeur_n = valeur + 1 && couleur = couleur_n then aux (valeur_n, couleur_n) (occ+1) rest
             else false
     in
     match c with
+    (* On applique la fonctions auxiliaire aux différentes 
+    suites de tuiles qui apparraisent dans la combinaison *)
     | [] -> true
     | [Joker] | [Joker; Joker]-> false
     | Joker :: T (valeur, couleur) :: rest -> aux (valeur, couleur) 2 rest
@@ -96,23 +101,32 @@ assert (est_suite [T(1,Rouge);T(2,Rouge);T(3,Rouge);T(4,Rouge);T(5,Rouge)]);;
 assert_not (est_suite [T(1,Rouge);T(2,Rouge);T(3,Rouge);T(4,Rouge);T(4,Rouge)]);;
 assert (est_suite [Joker;T(2,Rouge);T(3,Rouge);T(4,Rouge);T(5,Rouge)]);;
 
-let rec appartient_combi x c =
+let rec appartient_combi (x:couleur) (c:couleur list) =
     match c with
     | [] -> false
     | debut :: fin -> x = debut || (appartient_combi x fin)
 ;;
 
+(*Tests*)
+assert (appartient_combi Jaune [Jaune; Noir]);;
+assert_not (appartient_combi Jaune [Noir]);;
+
 let est_groupe (c:combinaison) =
     let rec aux (occ: int) (valeur: int) (couleur_l: couleur list) (c: combinaison) : bool =
+    (*Fonction auxiliaire qui prend la tuile précédente, la suite 
+    de la combinaison et la liste des couleurs déja rencontrées*)
     match c with
-    | [] -> occ = 3 || occ = 4
+    | [] -> occ = 3 || occ = 4 (* Condition : 3 ou 4 tuiles *)
     | Joker :: rest -> aux (occ+1) valeur couleur_l rest
     | T(valeur_n, couleur_n) :: rest ->
+        (* Conditions : Les tuiles doivent être de couleurs différentes et de même valeurs*)
         if (not (appartient_combi couleur_n couleur_l) && valeur = valeur_n)
         then aux (occ+1) valeur (couleur_n :: couleur_l) rest
         else false
     in
     match c with
+    (* On applique la fonctions auxiliaire aux différentes 
+    suites de tuiles qui apparraisent dans la combinaison *)
     | [] -> true
     | [Joker] | [Joker; Joker] -> false
     | Joker :: T(valeur, couleur) :: rest -> aux 2 valeur [couleur] rest
@@ -146,7 +160,7 @@ assert (combinaisons_valides
 
 (* Edgar *)
 (**
-    FONCTION AUXILIAURE
+    FONCTION AUXILIAIRE
     TODO
     Renvoie la première valeur d'une suite, en tenant compte de l'éventualité
     qu'il s'agisse d'un Joker
@@ -201,6 +215,7 @@ let points_pose (pose: pose) : int =
     List.fold_left (+) 0 (List.map points pose)
 ;;
 
+(*q14*)
 
 let rec insere_tuile (tuile:tuile) (c:combinaison):combinaison =
     match tuile with
@@ -209,6 +224,7 @@ let rec insere_tuile (tuile:tuile) (c:combinaison):combinaison =
             | [] -> T (n, cons) :: []
             | Joker :: queue -> Joker :: insere_tuile tuile queue
             | T(n_c, cons_c) :: queue ->
+                (*Trier selon la valeur des tuiles*)
                 if n < n_c then T (n, cons)::c
                 else T (n_c, cons_c) :: insere_tuile tuile queue
         )
@@ -230,7 +246,9 @@ assert (tri_insertion_tuile [T (2, Noir); Joker; T (1, Noir)]= [T (1, Noir); Jok
 let rec remplacer (r:combinaison)(c:combinaison)(table:table):table =
     match table with
     | [] -> []
-    | (x:combinaison)::rest -> if x = c then r::rest else x::(remplacer r c rest)
+    | (x:combinaison)::rest -> 
+        if x = c then r::rest 
+        else x::(remplacer r c rest)
 ;;
 
 (*Tests*)
@@ -243,10 +261,12 @@ assert ((remplacer c_1bis c_1 [c_1;c_2]) = [c_1bis;c_2]);;
 
 let rec ajouter_tuile (table:table)(tuile:tuile):table=
     let rec ajouter_tuile_aux (c:combinaison)(tuile:tuile):combinaison=
+        (*verifie si une combinaison concaténée avec la tuile est valide*)
         let (combi:combinaison) = tri_insertion_tuile([tuile]@c) in
-            if (est_suite combi = true)||(est_suite combi = true) then combi
+            if (est_suite combi = true)||(est_groupe combi = true) then combi
             else c
     in
+    (*On applique la fonction aux sur toutes les combinaisons de la table*)
     match table with
         | [] -> []
         | x::rest -> if (ajouter_tuile_aux x tuile = x) 
@@ -260,6 +280,5 @@ let test_table:table = [c_1;c_2;c_3];;
 let result_table: table = [c_1bis;c_2;c_3];;
 let test_tuile:tuile = T(6,Rouge);;
 assert ((ajouter_tuile test_table test_tuile) = result_table);;
-
 
 
