@@ -5,7 +5,7 @@ let assert_not cond = assert (not cond);;
 type 'a multielement = 'a * int;;
 type 'a multiensemble = 'a multielement list;;
 
-(*Variables pour test*)
+(*Constantes*)
 let cst_me1 : char multielement = ('a', 3);;
 let cst_me2 : char multielement = ('b', 2);;
 let cst_me3 : char multielement = ('c', 1);;
@@ -20,6 +20,7 @@ let cst_me8 : char multielement = ('c', 2);;
 let cst_mens1 : char multiensemble = [cst_me1; cst_me2; cst_me3];;
 let cst_mens2 : char multiensemble = [cst_me4; cst_me5; cst_me3];;
 let cst_mens3 : char multiensemble = [cst_me6; cst_me7; cst_me8];;
+let ens = [('a', 2); ('b', 1)];;
 
 let rec cardinal (mens: 'a multiensemble) : int =
     match mens with
@@ -83,7 +84,7 @@ let rec ajoute ((n_value, n_occ): 'a multielement) (mens: 'a multiensemble) : 'a
         (n_value, n_occ) :: mens
 ;;
 
-
+(*Tests*)
 assert (cst_mens1 = (ajoute ('a', 2) (ajoute ('b', 1) cst_mens2)));;
 assert ([('a', 1); ('b', 1)] = (ajoute ('c', -1) cst_mens2));;
 
@@ -91,6 +92,7 @@ let supprime ((n_value, n_occ): 'a multielement) (mens: 'a multiensemble) : 'a m
     ajoute (n_value, -n_occ) mens
 ;;
 
+(*Tests*)
 assert ([('a', 1); ('b', 1)] = (supprime ('c', 1) cst_mens2));;
 assert ([('a', 3); ('c', 1)] = (supprime ('b', 4) cst_mens1));;
 
@@ -98,6 +100,7 @@ let egaux (a: 'a multiensemble) (b: 'a multiensemble) : bool =
     (inclus a b) && (inclus b a) (* Double inclusion *)
 ;;
 
+(*Tests*)
 assert (egaux cst_mens1 cst_mens1);;
 assert_not (egaux cst_mens1 cst_mens3);;
 assert_not (egaux cst_mens1 cst_mens2);;
@@ -108,12 +111,14 @@ let rec intersection (a: 'a multiensemble) (b: 'a multiensemble) : 'a multiensem
     | (value, occurences) :: rest -> (
             let in_common_count = (min occurences (nbocc value b)) in
             if in_common_count = 0 then
+            (*Si il l'intersection est nulle pour cet élément*)
                 intersection rest b
             else
                 (value, in_common_count) :: (intersection rest b)
         )
 ;;
 
+(*Tests*)
 assert (cst_mens2 = intersection cst_mens1 cst_mens2);;
 assert ([('a', 3)] = intersection cst_mens1 ([('a', 4)]));;
 
@@ -123,6 +128,7 @@ let rec difference (a: 'a multiensemble) (b: 'a multiensemble) : 'a multiensembl
     | mel :: rest -> (difference (supprime mel a) rest)
 ;;
 
+(*Tests*)
 assert (([('a', 2); ('b', 1)]) = difference cst_mens1 cst_mens2);;
 
 let rec ieme (n: int) (mens: 'a multiensemble) : 'a =
@@ -133,8 +139,11 @@ let rec ieme (n: int) (mens: 'a multiensemble) : 'a =
         | [] -> failwith "n >= cardinal mens"
         | (value, occurences) :: rest -> (
                 if n < occurences then
+                (*si c'est le n-ième élément, on le retourne*)
                     value
                 else
+                (*sinon on recommence pour l'élément suivant 
+                en soustrayant les élément déja parcourus*)
                     ieme (n - occurences) rest
             )
 ;;
@@ -148,11 +157,7 @@ let un_dans (mens: 'a multiensemble) : 'a =
     ieme (Random.int length) mens
 ;;
 
-(* Suite de test manuelle pour "un_dans" *)
-
-let ens = [('a', 2); ('b', 1)];;
-
-(*
+(* Suite de test manuelle pour "un_dans" 
   Pour un nombre de "lancés" "remaining_rolls", retourne le nombre de fois que
   chaque lettre 'a'/'b' est tombée. Il devrait statistiquement il y avoir deux
   fois plus de 'a' que de 'b'. Comme ce test n'est pas déterministe du tout,
