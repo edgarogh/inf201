@@ -1,9 +1,10 @@
 (*
     Script de build pour compiler / lancer le projet
 
-    `ocaml build.ml`: compiler et lancer le programme
-    `ocaml build.ml build`: compiler seulement
-    `ocaml build.ml start`: lancer seulement (changements pas pris en compte)
+    `ocaml build.ml [point d'entrée]`: compiler les dépedendances et lancer le
+    fichier
+
+    Si aucun point d'entrée n'est spécifié, lance "main.ml"
 *)
 
 let dep_name_of_line line =
