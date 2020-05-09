@@ -1,5 +1,8 @@
 open Multiensemble
 open Tuiles
+open Combinatoire
+
+let () = Random.self_init ();;
 
 type joueur = J1 | J2;;
 type statut = joueur * bool * main;;
@@ -321,5 +324,18 @@ let result_table : table = [c_1bis; c_2; c_3];;
 let test_tuile : tuile = T (6, Rouge);;
 assert ((ajouter_tuile test_table test_tuile) = result_table);;
 
+(*
+    FONCTION AUXILIAIRE
+    Non déterministe (intestable)
 
+    Retourne un élément aléatoire d'une liste, raise si la liste est vide
+*)
+let un_dans_liste list =
+    let len = List.length list in
+    if len = 0
+    then failwith "Empty list"
+    else List.nth list (Random.int len)
+;;
 
+let extraction_suite main = un_dans_liste @@ suites_possibles main;;
+let extraction_groupe main = un_dans_liste @@ groupes_possibles main;;
