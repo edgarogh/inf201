@@ -358,3 +358,138 @@ let un_dans_liste list =
 
 let extraction_suite main = un_dans_liste @@ suites_possibles main;;
 let extraction_groupe main = un_dans_liste @@ groupes_possibles main;;
+
+
+(*
+    FONCTION AUXILIAIRE
+
+    Modifie la main d'un joueur donné pour un état donné et renvoie le nouvel
+    état. La modification se fait avec une fonction `f` qui prend une main et
+    renvoie une nouvelle main.
+*)
+let modifier_main etat joueur f : etat =
+    let main = la_main etat joueur in
+    let nouvelle_main = f main in
+
+    let ((s11, s12, s13), (s21, s22, s23)), p1, p2, p3 = etat in
+    let ss = if joueur = J1
+        then ((s11, s12, nouvelle_main), (s21, s22, s23))
+        else ((s11, s12, s13), (s21, s22, nouvelle_main))
+    in
+    (ss, p1, p2, p3)
+;;
+
+
+let piocher (e: etat) =
+    let pioche = la_pioche e in
+    if cardinal pioche = 0
+    then e
+    else
+    let (stat1, stat2), table, _, joueur = e in
+
+    let tuile_piochee = un_dans pioche in
+    let status, _, _, _ = modifier_main e joueur (ajoute (tuile_piochee, 1)) in
+    let nouvelle_pioche = supprime (tuile_piochee, 1) pioche in
+
+    (status, table, nouvelle_pioche, joueur)
+;;
+
+(* La fonction n'est pas entièrement déterministe, tests difficiles à faire *)
+let etat : etat = (((J1, false, [(Joker, 1)]), (J2, false, [])), [], [], J1) in
+assert (etat = piocher etat);;
+let etat0 : etat = (((J1, false, []), (J2, false, [(Joker, 1)])), [], [(Joker, 1)], J2) in
+let etat1 : etat = (((J1, false, []), (J2, false, [(Joker, 2)])), [], [], J2) in
+assert (etat1 = piocher etat0);;
+
+(*
+    FONCTION AUXILIAIRE
+    Renvoie l'"autre" joueur, comme un "not" booléen
+*)
+let autre = function J1 -> J2 | J2 -> J1;;
+
+assert (J1 = autre J2);;
+assert (J2 = autre J1);;
+
+
+(*
+    FONCTION AUXILIAIRE
+    Renvoie un état où le joueur courant a été changé en l'autre joueur
+*)
+let passer_tour (p0, p1, p2, joueur: etat) : etat =
+    p0, p1, p2, autre joueur
+;;
+
+
+let jouer_1_coup (e: etat) (table_proposee: table) : etat =
+    let _, table, _, joueur = e in
+    let status_joueur = statut e joueur in
+    let _, initialise, main = status_joueur in
+    (* Initialisé: e *)
+    if not initialise then e
+    (* Table identique: pioche *)
+    (*
+    J'utilise la composition inverse pour rendre le code plus lisible. Elle se
+    lit dans l'ordre dans lequel les fonction sont appliquées. Cela permet de
+    chaîner des changement d'états proprement.
+    *)
+    else if table_proposee = table then e |> piocher |> passer_tour
+    (* Table différente: enlever les cartes de la main *)
+    else (
+        (*
+        Pour enlever de la main les tuiles ajoutées à la table, on ajoute
+        l'ancienne table à la main puis on enlève la nouvelle table.
+        *)
+        let table_mels = List.map (fun x -> (x, 1)) (List.flatten table) in
+        let e = modifier_main e joueur (fun main ->
+            List.fold_left (fun acc -> fun e -> ajoute e acc) main table_mels
+        ) in
+
+        let table_p_mels = List.map (fun x -> (x, 1)) (List.flatten table_proposee) in
+        let e = modifier_main e joueur (fun main ->
+            List.fold_left (fun acc -> fun e -> supprime e acc) main table_p_mels
+        ) in
+
+        let p0, table, p2, p3 = passer_tour e in
+        (p0, table_proposee, p2, p3)
+    )
+;;
+
+let etat0 : etat = (((J1, true, [(T (2, Noir), 1)]), (J2, true, [])), [[T (2, Rouge); T (2, Jaune); T (2, Bleu)]], [], J1) in
+let etat1 : etat = (((J1, true, []), (J2, true, [])), [[T (2, Rouge); T (2, Jaune); T (2, Bleu); T (2, Noir)]], [], J2) in
+assert (etat1 = jouer_1_coup etat0 [[T (2, Rouge); T (2, Jaune); T (2, Bleu); T (2, Noir)]]);;
+
+
+let jouer_1er_coup (e: etat) (pose: pose) : etat =
+    let ((_, i1, _), (_, i2, _)), _, _, joueur = e in
+    if joueur = J1 && i1 then e
+    else
+    if joueur = J2 && i2 then e
+    else
+
+    let main_avant = la_main e joueur in
+
+    (* Suppression de la pose dans la main *)
+    let pose_mels = List.map (fun x -> (x, 1)) (List.flatten pose) in
+    let e = modifier_main e joueur (fun main ->
+        List.fold_left (fun acc -> fun e -> supprime e acc) main pose_mels
+    ) in
+
+    let main_apres = la_main e joueur in
+
+    if not @@ premier_coup_ok main_avant pose main_apres
+    then (
+        print_endline "Premier coup invalide";
+        e
+    )
+    else
+        let ((s11, s12, s13), (s21, s22, s23)), table, p2, _ = e in
+        let status = match joueur with
+        | J1 -> ((s11, true, s13), (s21, s22, s23))
+        | J2 -> ((s11, s12, s13), (s21, true, s23))
+        in
+        (status, table @ pose, p2, autre joueur)
+;;
+
+let etat0 : etat = (((J1, false, [(T (10, Rouge), 2); (T (10, Jaune), 1); (T (10, Bleu), 1); (T (10, Noir), 1)]), (J2, true, [])), [], [], J1) in
+let etat1 : etat = (((J1, true, [(T (10, Rouge), 1)]), (J2, true, [])), [[T (10, Rouge); T (10, Jaune); T (10, Bleu); T (10, Noir)]], [], J2) in
+assert (etat1 = jouer_1er_coup etat0 [[T (10, Rouge); T (10, Jaune); T (10, Bleu); T (10, Noir)]]);;
