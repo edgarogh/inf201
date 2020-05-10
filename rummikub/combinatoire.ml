@@ -52,9 +52,6 @@ Terminologie:
 *)
 let combinaisons_possibles pred_int (main: main) =
     let rec completer_combp combp (main: main) : combinaison list =
-        let possibilites = List.map string_of_tuile combp in
-        let comb = String.concat "; " possibilites in
-        print_endline ("." ^ comb);
         let tuiles_dans_main : tuile list = List.map fst main in
         let tuiles_valides = List.filter (pred_int combp) tuiles_dans_main in
         (* A partir des tuiles de la main qui peuvent être ajoutées à la
