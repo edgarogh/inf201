@@ -493,3 +493,47 @@ let jouer_1er_coup (e: etat) (pose: pose) : etat =
 let etat0 : etat = (((J1, false, [(T (10, Rouge), 2); (T (10, Jaune), 1); (T (10, Bleu), 1); (T (10, Noir), 1)]), (J2, true, [])), [], [], J1) in
 let etat1 : etat = (((J1, true, [(T (10, Rouge), 1)]), (J2, true, [])), [[T (10, Rouge); T (10, Jaune); T (10, Bleu); T (10, Noir)]], [], J2) in
 assert (etat1 = jouer_1er_coup etat0 [[T (10, Rouge); T (10, Jaune); T (10, Bleu); T (10, Noir)]]);;
+
+
+(* === Scénario de jeu === *)
+
+(* Inutile de le lancer, il y a toutes les chances pour qu'il ne marche pas *)
+exit 0;;
+
+let e = init_partie ();;
+
+let e = piocher e;;
+let e = piocher e;;
+
+let e = jouer_1er_coup e [
+    [T (9, Rouge); T (9, Jaune); T (9, Bleu)];
+    [Joker; T (2, Jaune); T (3, Jaune)]
+];;
+
+let e = piocher e;;
+let e = piocher e;;
+
+let e = jouer_1er_coup e [
+    [T (13, Jaune); T (13, Noir); T (13, Bleu)]
+];;
+
+let e = piocher e;;
+let e = piocher e;;
+let e = piocher e;;
+
+let e = jouer_1_coup e [
+    [T (9, Rouge); T (9, Jaune); T (9, Bleu); T (9, Noir)]; (* changement ici *)
+    [Joker; T (2, Jaune); T (3, Jaune)];
+    [T (13, Jaune); T (13, Noir); T (13, Bleu)]
+];;
+
+let e = piocher e;;
+let e = piocher e;;
+
+let e = jouer_1_coup e [
+    [T (9, Rouge); T (9, Jaune); T (9, Bleu); T (9, Noir)];
+    [Joker; T (2, Jaune); T (3, Jaune)];
+    [Joker; T (13, Jaune); T (13, Noir); T (13, Bleu)] (* changement ici *)
+];;
+
+(* ... *)
