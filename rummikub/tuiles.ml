@@ -48,7 +48,17 @@ let string_of_tuile = function
 (*q7*)
 (*
     FONCTION AUXILIAIRE
-    TODO
+    Filtre un multiensemble de tuiles pour ne garder qu'une couleur. Cette
+    fonction, appliquée partiellement, permet de créer les fonctions `trouver_*`
+    demandées dans l'énoncé.
+
+    TYPE: couleur -> tuile multiensemble -> tuile multiensemble
+
+    UTILISATION:
+    - (trouver_couleur Jaune mens) renvoie un multiensemble qui contient toutes
+      les tuiles jaunes de mens
+
+    ALGO: Ordre superieur + Pattern matching
 *)
 let trouver_couleur couleur (mens: tuile multiensemble) : tuile multiensemble =
     List.filter (

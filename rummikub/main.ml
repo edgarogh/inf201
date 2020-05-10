@@ -164,9 +164,20 @@ assert (combinaisons_valides
 (* Edgar *)
 (**
     FONCTION AUXILIAIRE
-    TODO
     Renvoie la première valeur d'une suite, en tenant compte de l'éventualité
     qu'il s'agisse d'un Joker
+
+    TYPE: combinaison -> int
+
+    UTILISATION:
+    - (debut_suite suite) renvoie la valeur de la première tuile de `suite`. Si
+      cette tuile est un Joker, sa valeur est devinée à partir des tuiles
+      suivantes
+
+    EXEMPLES: (c.f. assertions)
+
+    ALGO: Pattern matching
+    Ne fonctionne qu'avec 2 Jokers maximum de par sa nature finie / non-recur.
 *)
 let debut_suite : combinaison -> int = function
     | T (valeur, _) :: _ -> valeur
@@ -180,8 +191,16 @@ assert (10 = debut_suite [Joker; Joker; T (12, Rouge)]);;
 
 (**
     FONCTION AUXILIAIRE
-    TODO
     Somme des entiers consécutifs de m à n
+
+    TYPE: int -> int -> int
+
+    UTILISATION:
+    - (somme_m_a_n m n) renvoie la somme des entiers consécutifs de m à n inclus
+
+    EXEMPLES: (c.f. assertions)
+
+    ALGO: Formule mathématique bien connue
 *)
 let somme_m_a_n m n = (n - m + 1) * (m + n) / 2;;
 
@@ -220,8 +239,13 @@ let points_pose (pose: pose) : int =
 
 (**
     FONCTION AUXILIAIRE
-    TODO
-    Explicite
+    Très explicite: créer un multiensemble à partir d'une liste
+
+    TYPE: 'a list -> 'a multiensemble
+
+    ALGO: Ordre supérieur + fonction "ajoute" des multiensembles, on ajoute des
+    multielements de taille 1 pour chaque élément de la liste en partant d'un
+    multiensemble vide.
 *)
 let multiensemble_of_list list =
     List.fold_left (fun acc -> fun el -> ajoute (el, 1) acc) [] list
@@ -276,8 +300,6 @@ let coup_ok (table0: table) (main0: main) (table1: table) (main1: main) =
     )
 ;;
 
-(* TODO assertions *)
-
 let rec insere_tuile (tuile: tuile) (c: combinaison) : combinaison =
     match tuile with
     | T (n, cons) -> (
@@ -304,7 +326,7 @@ let rec tri_insertion_tuile = function
 
 assert (tri_insertion_tuile [T (2, Noir); Joker; T (1, Noir)]= [T (1, Noir); Joker; T (2, Noir)]);;
 
-let rec remplacer (r:combinaison)(c:combinaison)(table:table) : table =
+let rec remplacer (r: combinaison) (c: combinaison) (table: table) : table =
     match table with
     | [] -> []
     | (x: combinaison) :: rest ->
@@ -333,7 +355,7 @@ let rec ajouter_tuile (table: table) (tuile: tuile) : table =
         | x :: rest ->
             if (ajouter_tuile_aux x tuile = x)
             then ajouter_tuile rest tuile
-            else let new_c: combinaison = (ajouter_tuile_aux x tuile) in
+            else let new_c : combinaison = (ajouter_tuile_aux x tuile) in
                 (remplacer new_c x table)
 ;;
 
@@ -343,11 +365,13 @@ let result_table : table = [c_1bis; c_2; c_3];;
 let test_tuile : tuile = T (6, Rouge);;
 assert ((ajouter_tuile test_table test_tuile) = result_table);;
 
-(*
+(**
     FONCTION AUXILIAIRE
-    Non déterministe (intestable)
-
     Retourne un élément aléatoire d'une liste, raise si la liste est vide
+
+    TYPE: 'a list -> 'a
+
+    Non déterministe (intestable)
 *)
 let un_dans_liste list =
     let len = List.length list in
@@ -360,12 +384,17 @@ let extraction_suite main = un_dans_liste @@ suites_possibles main;;
 let extraction_groupe main = un_dans_liste @@ groupes_possibles main;;
 
 
-(*
+(**
     FONCTION AUXILIAIRE
-
     Modifie la main d'un joueur donné pour un état donné et renvoie le nouvel
     état. La modification se fait avec une fonction `f` qui prend une main et
     renvoie une nouvelle main.
+
+    TYPE: etat -> joueur -> (main -> main) -> etat
+
+    UTILISATION:
+    - (modifier_main e J1 (supprime (Joker, 1))) renvoie une "copie" de l'état
+      e où la main de J1 contient un joker de moins.
 *)
 let modifier_main etat joueur f : etat =
     let main = la_main etat joueur in
@@ -401,9 +430,22 @@ let etat0 : etat = (((J1, false, []), (J2, false, [(Joker, 1)])), [], [(Joker, 1
 let etat1 : etat = (((J1, false, []), (J2, false, [(Joker, 2)])), [], [], J2) in
 assert (etat1 = piocher etat0);;
 
-(*
+(**
     FONCTION AUXILIAIRE
     Renvoie l'"autre" joueur, comme un "not" booléen
+
+    TYPE: joueur -> joueur
+
+    UTILISATION:
+    - (autre joueur) renvoie l'autre joueur
+
+    EXEMPLES:
+    - J1 = autre J2
+    - J2 = autre J1
+
+    ALGORITHME: Pattern matching
+
+    (j'exagère peut être la formalité ;-) )
 *)
 let autre = function J1 -> J2 | J2 -> J1;;
 
@@ -411,9 +453,11 @@ assert (J1 = autre J2);;
 assert (J2 = autre J1);;
 
 
-(*
+(**
     FONCTION AUXILIAIRE
     Renvoie un état où le joueur courant a été changé en l'autre joueur
+
+    TYPE: etat -> etat
 *)
 let passer_tour (p0, p1, p2, joueur: etat) : etat =
     p0, p1, p2, autre joueur

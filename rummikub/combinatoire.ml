@@ -43,9 +43,10 @@ Terminologie:
 
 (*
     FONCTION AUXILIAIRE - Essentiellement expliquée ci-dessus
-
     Retourne toutes les combinaisons possibles pour une main donnée et un
     prédicat intermédiaire donné
+
+    TYPE: (combinaison -> tuile -> bool) -> main -> combinaison list
 
     ALGO: Récursion pour générer les possiblités, avec filtrage par chacun des
     deux predicats à différents moments
@@ -77,19 +78,20 @@ let combinaisons_possibles pred_int (main: main) =
 
 (*
     Les fameux predicats intermédiaires, expliqués dans l'entête
-    Type: tuile list -> tuile -> bool
+    TYPE: tuile list -> tuile -> bool
 
     + au début, une petite fonction auxiliaire bonus
 *)
 
 (**
     FONCTION AUXILIAURE
-
     Renvoie la valeur attendue après la fin d'une suite sous la forme d'une
     option. `Some valeur` indique que l'élément après le dernier doit avoir le
     numéro spécifié, `None` indique qu'on ne peut pas déterminer de valeur
     (liste vide ou ne contenant que des jokers).
     La fonction part du principe qu'il y a au plus 2 jokers.
+
+    TYPE: tuile list -> int option
 *)
 let valeur_attendue_fin_suite combp : int option = match List.rev combp with
     | T (valeur, _) :: _ -> Some (valeur + 1)
