@@ -32,6 +32,19 @@ let cst_PIOCHE_INIT : pioche =
     ]
 ;;
 
+let string_of_couleur = function
+    | Rouge -> "R"
+    | Bleu -> "B"
+    | Jaune -> "J"
+    | Noir -> "N"
+;;
+
+let string_of_tuile = function
+    | Joker -> "Jk"
+    | T (valeur, couleur) ->
+        (string_of_int valeur) ^ (string_of_couleur couleur)
+;;
+
 (*q7*)
 (*
     FONCTION AUXILIAIRE
